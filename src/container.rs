@@ -144,9 +144,9 @@ impl Container {
     /// ```
     pub fn exec(&mut self, command: &[&str]) -> io::Result<()> {
         let mut args = vec!["exec", &self.name, "--"];
-        for arg in command.as_ref().iter() {
-            args.push(arg.as_ref());
-        }
+        args.extend(
+            command.as_ref().iter().map(|arg| arg.as_ref())
+        );
         lxc(&args)
     }
 
@@ -175,7 +175,16 @@ impl Container {
     /// container.mount("source", ".", "/root/source").unwrap();
     /// ```
     pub fn mount<P: AsRef<Path>>(&mut self, name: &str, source: P, dest: &str) -> io::Result<()> {
-        lxc(&["config", "device", "add", &self.name, name, "disk", &format!("source={}", source.as_ref().display()), &format!("path={}", dest)])
+        lxc(&[
+            "config",
+            "device",
+            "add",
+            &self.name,
+            name,
+            "disk",
+            &format!("source={}", source.as_ref().display()),
+            &format!("path={}", dest)
+        ])
     }
 
     /// Push a file to the LXD container
